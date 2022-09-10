@@ -1,4 +1,5 @@
 use crate::{cli::Args, config::ContainerOpts, errors::Errcode};
+use nix::sys::utsname::uname;
 
 pub struct Container {
     config: ContainerOpts,
@@ -22,7 +23,33 @@ impl Container {
     }
 }
 
+pub const MINIMAL_KERNEL_VERSION: f32 = 4.8;
+
+pub fn check_linux_version() -> Result<(), Errcode> {
+    let host = uname().unwrap();
+    log::debug!("Linux release: {}", host.release().to_str().unwrap());
+
+    if let Ok(version) = scan_fmt!(host.release().to_str().unwrap(), "{f}.{}", f32) {
+        if version < MINIMAL_KERNEL_VERSION {
+            return Err(Errcode::NotSupported(0));
+        }
+    } else {
+        return Err(Errcode::ContainerError(0));
+    }
+
+    log::debug!("Linux version: {}", host.release().to_str().unwrap());
+    log::debug!("Architecture: {}", host.machine().to_str().unwrap());
+
+    // Comment in mac
+    if host.machine() != "x86_64" {
+        return Err(Errcode::NotSupported(1));
+    }
+
+    Ok(())
+}
+
 pub fn start(args: Args) -> Result<(), Errcode> {
+    check_linux_version()?;
     let mut container = Container::new(args)?;
 
     if let Err(err) = container.create() {

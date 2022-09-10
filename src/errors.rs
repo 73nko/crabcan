@@ -1,11 +1,15 @@
 use std::fmt;
 use std::process::exit;
 
+use crate::container::MINIMAL_KERNEL_VERSION;
+
 // Allows to display a variant with the format {:?}
 #[derive(Debug)]
 // Contains all possible errors in our tool
 pub enum Errcode {
     ArgumentInvalid(&'static str),
+    NotSupported(u8),
+    ContainerError(u8),
 }
 
 impl Errcode {
@@ -21,6 +25,15 @@ impl Errcode {
 impl fmt::Display for Errcode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self {
+            Errcode::NotSupported(errtype) => match errtype {
+                0 => write!(
+                    f,
+                    "Minimal kernel version required: {}",
+                    MINIMAL_KERNEL_VERSION
+                ),
+                1 => write!(f, "Only x86_64 architecture is supported"),
+                _ => write!(f, "{:?} (unknown id)", self),
+            },
             Errcode::ArgumentInvalid(element) => write!(f, "ArgumentInvalid: {}", element),
             _ => write!(f, "{:?}", self),
         }
