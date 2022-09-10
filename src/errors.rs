@@ -4,7 +4,9 @@ use std::process::exit;
 // Allows to display a variant with the format {:?}
 #[derive(Debug)]
 // Contains all possible errors in our tool
-pub enum Errcode {}
+pub enum Errcode {
+    ArgumentInvalid(&'static str),
+}
 
 impl Errcode {
     pub fn get_retcode(&self) -> i32 {
@@ -19,6 +21,7 @@ impl Errcode {
 impl fmt::Display for Errcode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self {
+            Errcode::ArgumentInvalid(element) => write!(f, "ArgumentInvalid: {}", element),
             _ => write!(f, "{:?}", self),
         }
     }
