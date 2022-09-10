@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 use structopt::StructOpt;
 
+use crate::errors::Errcode;
+
 #[derive(Debug, StructOpt)]
 #[structopt(name = "crabcan", about = "A simple container in Rust 🦀")]
 pub struct Args {
@@ -21,7 +23,7 @@ pub struct Args {
     pub mount_dir: PathBuf,
 }
 
-pub fn parse_args() -> Args {
+pub fn parse_args() -> Result<Args, Errcode> {
     let args = Args::from_args();
 
     if args.debug {
@@ -32,7 +34,7 @@ pub fn parse_args() -> Args {
 
     // Validate arguments
 
-    args
+    Ok(args)
 }
 
 pub fn setup_log(level: log::LevelFilter) {
